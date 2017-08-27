@@ -42,7 +42,7 @@ RUN mkdir -p /root/.android && \
 RUN groupadd --gid 1000 node \
  && useradd --uid 1000 --gid node --shell /bin/bash --create-home node
 
-RUN NODE_VERSION=$(curl -sL https://nodejs.org/download/release/index.tab | awk '(NR != 1) { print $1; exit}')
+RUN NODE_VERSION=$(curl -sL https://nodejs.org/download/release/index.tab | awk '(NR != 1) { print $1; exit}') \
  && curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" \
  && tar -xJf "node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 \
  && rm "node-v$NODE_VERSION-linux-x64.tar.xz"
