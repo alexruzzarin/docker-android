@@ -1,67 +1,47 @@
-FROM ubuntu:xenial
+FROM openjdk:8
 
 MAINTAINER Alex Ruzzarin <alex@pager.com>
 
-ENV DEBIAN_FRONTEND=noninteractive \
-    TERM=xterm \
-    ANDROID_SDK_URL="https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip" \
-    ANDROID_BUILD_TOOLS_VERSION=25.0.3 \
-    ANDROID_PLATFORM_APIS="android-25" \
-    NODEJS_VERSION=6.11.1 \
-    NPM_VERSION=5.3 \
-    CORDOVA_VERSION=7.0.1 \
-    JAVA_HOME="/usr/lib/jvm/java-8-oracle" \
-    ANT_HOME="/usr/share/ant" \
-    MAVEN_HOME="/usr/share/maven" \
-    GRADLE_HOME="/usr/share/gradle" \
-    ANDROID_HOME="/opt/android"
-
-ENV PATH $PATH:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/$ANDROID_BUILD_TOOLS_VERSION:$ANT_HOME/bin:$MAVEN_HOME/bin:$GRADLE_HOME/bin:/opt/node/bin
-
-WORKDIR /opt
-
-RUN buildDeps='software-properties-common'; \
-    set -x && \
-    # automatically accept the Oracle license
-    echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections && \
-
-    dpkg --add-architecture i386 && \
-    apt-get -qq update && \
-    apt-get -qq install -y $buildDeps wget curl maven ant gradle libncurses5:i386 libstdc++6:i386 zlib1g:i386 ca-certificates --no-install-recommends && \
-
-    # use WebUpd8 PPA
-    add-apt-repository ppa:webupd8team/java -y && \
-    apt-get -qq update -y && \
-    apt-get -qq install -y oracle-java8-installer oracle-java8-set-default
-
-    # Installs Android SDK
-RUN mkdir android && \
-    cd android && \
-    wget -O tools.zip ${ANDROID_SDK_URL} && \
-    unzip tools.zip && \
-    rm tools.zip && \
-    mkdir -p /root/.android && \
-    touch /root/.android/repositories.cfg && \
-    yes | sdkmanager "build-tools;${ANDROID_BUILD_TOOLS_VERSION}" "platform-tools" "platforms;${ANDROID_PLATFORM_APIS}" && \
-    sdkmanager --update && \
-    yes | sdkmanager --licenses && \
-    chmod a+x -R $ANDROID_HOME && \
-    chown -R root:root $ANDROID_HOME
-
-    # Installs Node
-RUN cd /opt && \
-    mkdir node && \
-    cd /opt/node && \
-    curl -sL https://nodejs.org/dist/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-x64.tar.gz | tar xz --strip-components=1 && \
-
-    # clean up
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-    apt-get purge -y --auto-remove $buildDeps && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-
-    # Installs Cordova
-    npm i -g --unsafe-perm npm@${NPM_VERSION} cordova@${CORDOVA_VERSION}
+ENV DEBIAN_FRONTEND="noninteractive"
+ENV TERM="dumb"
+ENV VERSION_SDK_TOOLS="3859397"
+ENV ANDROID_SDK_URL="https://dl.google.com/android/repository/sdk-tools-linux-${VERSION_SDK_TOOLS}.zip"
+ENV ANDROID_HOME="/sdk"
+ENV ANDROID_SDK="${ANDROID_HOME}"
+ENV JAVA_OPTS="-Xms512m -Xmx1024m"
+ENV GRADLE_OPTS="-XX:+UseG1GC -XX:MaxGCPauseMillis=1000"
+ENV NODE_VERSION="8.4.0"
+ENV NPM_CONFIG_LOGLEVEL="info"
+ENV PATH="${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools"
 
 RUN apt-get -qq update && \
-    apt-get -qq install -y git
+    apt-get install -qqy --no-install-recommends \
+      html2text \
+      libc6-i386 \
+      lib32stdc++6 \
+      lib32gcc1 \
+      lib32ncurses5 \
+      lib32z1 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN curl -s https://dl.google.com/android/repository/sdk-tools-linux-${VERSION_SDK_TOOLS}.zip > /sdk.zip && \
+    unzip /sdk.zip -d ${ANDROID_HOME} && \
+    rm -v /sdk.zip
+
+RUN mkdir -p $ANDROID_HOME/licenses/ && \
+    echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > $ANDROID_HOME/licenses/android-sdk-license && \
+    echo "84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-preview-license
+
+ADD packages.txt /sdk
+RUN mkdir -p /root/.android && \
+  touch /root/.android/repositories.cfg && \
+  ${ANDROID_HOME}/tools/bin/sdkmanager --update && \
+  (while [ 1 ]; do sleep 5; echo y; done) | ${ANDROID_HOME}/tools/bin/sdkmanager --package_file=/sdk/packages.txt
+
+
+ENV NODE_VERSION 8.4.0
+
+RUN curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" \
+  && tar -xJf "node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 \
+  && rm "node-v$NODE_VERSION-linux-x64.tar.xz"

@@ -1,0 +1,9 @@
+build-tools;23.0.1
+build-tools;26.0.1
+extras;android;m2repository
+extras;google;m2repository
+patcher;v4
+platform-tools
+platforms;android-23
+platforms;android-26
+tools
