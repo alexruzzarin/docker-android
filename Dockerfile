@@ -2,17 +2,16 @@ FROM openjdk:8
 
 MAINTAINER Alex Ruzzarin <alex@pager.com>
 
-ENV DEBIAN_FRONTEND="noninteractive"
-ENV TERM="dumb"
-ENV VERSION_SDK_TOOLS="3859397"
-ENV ANDROID_SDK_URL="https://dl.google.com/android/repository/sdk-tools-linux-${VERSION_SDK_TOOLS}.zip"
-ENV ANDROID_HOME="/sdk"
-ENV ANDROID_SDK="${ANDROID_HOME}"
-ENV JAVA_OPTS="-Xms512m -Xmx1024m"
-ENV GRADLE_OPTS="-XX:+UseG1GC -XX:MaxGCPauseMillis=1000"
-ENV NODE_VERSION="8.4.0"
-ENV NPM_CONFIG_LOGLEVEL="info"
-ENV PATH="${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools"
+ENV DEBIAN_FRONTEND="noninteractive" && \
+    TERM="dumb" && \
+    VERSION_SDK_TOOLS="3859397" && \
+    ANDROID_SDK_URL="https://dl.google.com/android/repository/sdk-tools-linux-${VERSION_SDK_TOOLS}.zip" && \
+    ANDROID_HOME="/sdk" && \
+    ANDROID_SDK="${ANDROID_HOME}" && \
+    JAVA_OPTS="-Xms512m -Xmx1024m" && \
+    GRADLE_OPTS="-XX:+UseG1GC -XX:MaxGCPauseMillis=1000" && \
+    NPM_CONFIG_LOGLEVEL="info" && \
+    PATH="${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools"
 
 RUN apt-get -qq update && \
     apt-get install -qqy --no-install-recommends \
@@ -40,8 +39,10 @@ RUN mkdir -p /root/.android && \
   (while [ 1 ]; do sleep 5; echo y; done) | ${ANDROID_HOME}/tools/bin/sdkmanager --package_file=/sdk/packages.txt
 
 
-ENV NODE_VERSION 8.4.0
+RUN groupadd --gid 1000 node \
+ && useradd --uid 1000 --gid node --shell /bin/bash --create-home node
 
-RUN curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" \
-  && tar -xJf "node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 \
-  && rm "node-v$NODE_VERSION-linux-x64.tar.xz"
+RUN NODE_VERSION=$(curl -sL https://nodejs.org/download/release/index.tab | awk '(NR != 1) { print $1; exit}')
+ && curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" \
+ && tar -xJf "node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 \
+ && rm "node-v$NODE_VERSION-linux-x64.tar.xz"
