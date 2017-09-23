@@ -8,7 +8,7 @@ ENV VERSION_SDK_TOOLS="3859397"
 ENV ANDROID_SDK_URL="https://dl.google.com/android/repository/sdk-tools-linux-${VERSION_SDK_TOOLS}.zip"
 ENV ANDROID_HOME="/sdk"
 ENV ANDROID_SDK="${ANDROID_HOME}"
-ENV JAVA_OPTS="-Xms512m -Xmx1024m"
+ENV JAVA_OPTS="-Xms512m -Xmx3072m"
 ENV GRADLE_OPTS="-XX:+UseG1GC -XX:MaxGCPauseMillis=1000"
 ENV NPM_CONFIG_LOGLEVEL="info"
 ENV PATH="${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools"
@@ -32,11 +32,13 @@ RUN mkdir -p $ANDROID_HOME/licenses/ && \
     echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > $ANDROID_HOME/licenses/android-sdk-license && \
     echo "84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-preview-license
 
-ADD packages.txt /sdk
+# ADD packages.txt /sdk
 RUN mkdir -p /root/.android && \
   touch /root/.android/repositories.cfg && \
   ${ANDROID_HOME}/tools/bin/sdkmanager --update
-RUN (while [ 1 ]; do sleep 5; echo y; done) | ${ANDROID_HOME}/tools/bin/sdkmanager --package_file="/sdk/packages.txt"
+# RUN (while [ 1 ]; do sleep 5; echo y; done) | ${ANDROID_HOME}/tools/bin/sdkmanager --package_file="/sdk/packages.txt"
+RUN (while [ 1 ]; do sleep 5; echo y; done) | ${ANDROID_HOME}/tools/bin/sdkmanager "build-tools;23.0.3" "build-tools;26.0.1" "extras;android;m2repository" "extras;google;m2repository" "patcher;v4" "platform-tools" "platforms;android-23" "platforms;android-26" "tools"
+
 
 
 RUN groupadd --gid 1000 node \
