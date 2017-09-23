@@ -35,8 +35,8 @@ RUN mkdir -p $ANDROID_HOME/licenses/ && \
 ADD packages.txt /sdk
 RUN mkdir -p /root/.android && \
   touch /root/.android/repositories.cfg && \
-  ${ANDROID_HOME}/tools/bin/sdkmanager --update && \
-  (while [ 1 ]; do sleep 5; echo y; done) | ${ANDROID_HOME}/tools/bin/sdkmanager --package_file=/sdk/packages.txt
+  ${ANDROID_HOME}/tools/bin/sdkmanager --update
+RUN (while [ 1 ]; do sleep 5; echo y; done) | ${ANDROID_HOME}/tools/bin/sdkmanager --package_file="/sdk/packages.txt"
 
 
 RUN groupadd --gid 1000 node \
