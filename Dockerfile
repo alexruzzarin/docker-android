@@ -15,6 +15,7 @@ ENV PATH="${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools"
 
 RUN apt-get -qq update && \
     apt-get install -qqy --no-install-recommends \
+      build-essential \
       html2text \
       libc6-i386 \
       lib32stdc++6 \
