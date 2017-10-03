@@ -11,11 +11,12 @@ ENV ANDROID_SDK="${ANDROID_HOME}"
 ENV JAVA_OPTS="-Xms512m -Xmx3072m"
 ENV GRADLE_OPTS="-XX:+UseG1GC -XX:MaxGCPauseMillis=1000"
 ENV NPM_CONFIG_LOGLEVEL="info"
-ENV PATH="${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools"
+ENV PATH="${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools"
 
 RUN apt-get -qq update && \
     apt-get install -qqy --no-install-recommends \
       build-essential \
+      gradle \
       html2text \
       libc6-i386 \
       lib32stdc++6 \
